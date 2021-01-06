@@ -37,8 +37,8 @@ def main():
     os.mkdir(testinstance_dir)
     os.chdir(testinstance_dir)
 
-    print("Copy Template File to testresult directory")
-    shutil.copyfile('../htest/templates/testresult_summary.html','testresult_summary.html')
+    print("move Template File to testresult directory")
+    shutil.move('../htest/templates/testresult_summary.html','testresult_summary.html')
 
     print("Parsing testing data")
     with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'r') as fh:
@@ -127,14 +127,16 @@ def main():
         "-3":"ENVFAILED",
         "-9":"TIMEOUT"
     }
-    if rtncode in results.keys():
-        testrunningdata['testinstances'][args.testinstanceid]['status'] = results[rtncode]
+    if str(rtncode) in results.keys():
+        testrunningdata['testinstances'][args.testinstanceid]['status'] = results[str(rtncode)]
     else:
         testrunningdata['testinstances'][args.testinstanceid]['status'] = "NA"
     
+    print("update testrun statistics")
     with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'w') as fh:
         fh.write(json.dumps(testrunningdata))
-    
+
+    print("update testrun summary")
     with open('/testdata/' + args.testrundir + "/testrun_summary.html", 'r+') as testrun_handle:
         testrundata = testrun_handle.read()
         '''
@@ -144,6 +146,7 @@ def main():
         testrun_handle.seek(0)
         testrun_handle.write(testrundata)
 
+    print("update testresult summary")
     endtime = datetime.now()
     logfiles = os.listdir()
     testlog = ""
@@ -153,7 +156,7 @@ def main():
             <tr><td>tr_name</td><td><a href="tr_file_path">tr_file_path</a></td><td>tr_result</td></tr>
         '''
         testlog += '<tr><td>' + logfile + '</td><td><a href="./' + logfile + '">' + logfile + '</a></td></tr>'
-    
+        
     with open('/testdata/' + args.testrundir + '/' + testinstance_dir + "/testresult_summary.html", 'r+') as testresult_handle:
         testresultdata = testresult_handle.read()  
         testresultdata = testresultdata.replace('tctc', args.script)
