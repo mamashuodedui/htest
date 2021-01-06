@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import argparse
 import subprocess
 import shutil
-import psutil
+#import psutil
 
 import sys
 sys.path.append(".")
@@ -22,7 +22,6 @@ def main():
     parser.add_argument('-t','--script', default='', required=True, help='Whole Script path')
     parser.add_argument('-p','--scriptparams', default='{}',required=False, help='Script Parameters to be tested')
     parser.add_argument('-F','--testruningstatfile', default='',required=True, help='testrunning stat file')
-    parser.add_argument('-T','--testtype', default='oob',required=True, help='test type: 1. ib, 2. oob')
     parser.add_argument('-O','--owner', default='admin',required=True, help='test owner')
 
     args = parser.parse_args()
