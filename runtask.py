@@ -142,7 +142,7 @@ def main():
         '''
             <tr><td>tr_name</td><td><a href="tr_file_path">tr_file_path</a></td><td>tr_result</td></tr>
         '''
-        testrundata = testrundata.replace('trstrs', '<tr><td>' + args.script + '</td><td><a href="./' + testinstance_dir + '">' + testinstance_dir + '</a></td><td>' + testresult + '</td></tr>trstrs')
+        testrundata = testrundata.replace('trstrs', '<tr><td>' + args.script + '</td><td><a href="./' + testinstance_dir + '/testresult_summary.html">testresult_summary</a></td><td>' + testresult + '</td></tr>trstrs')
         testrun_handle.seek(0)
         testrun_handle.write(testrundata)
 
