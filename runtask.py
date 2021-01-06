@@ -51,16 +51,13 @@ def main():
     res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
 
     print("Executing timeout monitor")
-    toh = open("timeout.log","w")
-    toh.write("Executing timeout monitor")
     timeouttime = starttime + timedelta(**{'seconds': int(args.timeout)})
     timoutcmd = '/opt/python/python36/bin/python36 ../htest/timeout.py --pid %s --ttime "%s"'%(res.pid, timeouttime)
     print("timeoutcmd is %s"%(timoutcmd))
     try:
-        res_timeout = subprocess.Popen( timoutcmd, shell=True, stdout=toh, stderr=toh )
+        res_timeout = subprocess.Popen( timoutcmd, shell=True )
     except Exception as e:
-        toh.write('Error Happened When Running timeout monitor with script:%s \nError:%s' % ( cmd, e ))
-    toh.close()
+        print('Error Happened When Running timeout monitor with script:%s \nError:%s' % ( cmd, e ))
     rtncode = res.wait()
     '''
     print("Collecting logs...")
@@ -90,43 +87,39 @@ def main():
     '''
     
     print("return code is %s"%rtncode)
+    print(testrunningdata)
+    testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
+    testrunningdata['testinstances'][args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
+    testrunningdata['testinstances'][args.testinstanceid]['pid'] = res.pid
+    
+    #update the testrun data
     testresult = ""
     if rtncode == rtnCode.SUCCEED:
         testresult = "SUCCEED"
-    elif rtncode == rtnCode.TESTFAILED:
-        testresult = "TESTFAILED"
-    elif rtncode == rtnCode.SCRIPTFAILED:
-        testresult = "SCRIPTFAILED"
-    elif rtncode == rtnCode.ENVFAILED:
-        testresult = "ENVFAILED"
-    elif rtncode == rtnCode.TIMEOUT:
-        testresult = "TIMEOUT"
-    else:
-        testresult = 'NA'
-
-    print(testrunningdata)
-    testrunningdata[args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
-    testrunningdata[args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
-    testrunningdata[args.testinstanceid]['pid'] = res.pid
-    
-    #update the testrun data
-    if rtncode == 0:
         testrunningdata['SUCCEED'] += 1
         testrunningdata['NOTRUN'] -= 1
-    elif rtncode == 1:
+    elif rtncode == rtnCode.TESTFAILED:
+        testresult = "TESTFAILED"
         testrunningdata['TESTFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
-    elif rtncode == 2:
+    elif rtncode == rtnCode.SCRIPTFAILED:
+        testresult = "SCRIPTFAILED"
         testrunningdata['SCRIPTFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
-    elif rtncode == 3:
+    elif rtncode == rtnCode.ENVFAILED:
+        testresult = "ENVFAILED"
         testrunningdata['ENVFAILED'] += 1
+        testrunningdata['NOTRUN'] -= 1
+    elif rtncode == rtnCode.TIMEOUT:
+        testresult = "TIMEOUT"
+        testrunningdata['TIMEOUT'] += 1
         testrunningdata['NOTRUN'] -= 1
     #if not return by script, timeout happen at hight possiblity
     else:
-        testrunningdata['TIMEOUT'] += 1
+        testresult = 'NA'
+        testrunningdata['NA'] += 1
         testrunningdata['NOTRUN'] -= 1
-        
+
     results = {
         "0":"SUCCEED",
         "-1":"TESTFAILED",
@@ -134,10 +127,10 @@ def main():
         "-3":"ENVFAILED",
         "-9":"TIMEOUT"
     }
-    if rtncode not in ["-1","-2","-3","-9"]:
-        testrunningdata[args.testinstanceid]['status'] = "NA"
+    if rtncode in results.keys():
+        testrunningdata['testinstances'][args.testinstanceid]['status'] = results[rtncode]
     else:
-        testrunningdata[args.testinstanceid]['status'] = results[rtncode]
+        testrunningdata['testinstances'][args.testinstanceid]['status'] = "NA"
     
     with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'w') as fh:
         fh.write(json.dumps(testrunningdata))
@@ -162,10 +155,7 @@ def main():
         testlog += '<tr><td>' + logfile + '</td><td><a href="./' + logfile + '">' + logfile + '</a></td></tr>'
     
     with open('/testdata/' + args.testrundir + '/' + testinstance_dir + "/testresult_summary.html", 'r+') as testresult_handle:
-        testresultdata = testresult_handle.read()
-        print("###############################################################################")
-        print(testresultdata)
-        print("###############################################################################")        
+        testresultdata = testresult_handle.read()  
         testresultdata = testresultdata.replace('tctc', args.script)
         testresultdata = testresultdata.replace('titi', args.testinstanceid)
         testresultdata = testresultdata.replace('stst', str(starttime))
