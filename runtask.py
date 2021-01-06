@@ -38,7 +38,7 @@ def main():
     os.chdir(testinstance_dir)
 
     print("move Template File to testresult directory")
-    shutil.move('../htest/templates/testresult_summary.html','testresult_summary.html')
+    shutil.copyfile('../htest/templates/testresult_summary.html','testresult_summary.html')
 
     print("Parsing testing data")
     with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'r') as fh:
