@@ -21,9 +21,10 @@ def main():
             os.kill(int(pid), signal.SIGKILL)
             print("Timeout Time Reached, Killing PID: %s"%(pid))
         except OSError:
-            print("No Such PID Exists")
+            print("No Such PID Exists: %s"%(pid))
         except Exception as error:
             print("Error Happened When Kill PID: %s: %s"%( pid, error ))
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
