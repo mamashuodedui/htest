@@ -23,41 +23,82 @@ def main():
     parser.add_argument('-p','--scriptparams', default='{}',required=False, help='Script Parameters to be tested')
     parser.add_argument('-F','--testruningstatfile', default='',required=True, help='testrunning stat file')
     parser.add_argument('-O','--owner', default='admin',required=True, help='test owner')
+    parser.add_argument('-T','--topo', default=1,required=True, help='topology: 1.single, 2.b2b 3.multiple')
+    
 
     args = parser.parse_args()
     
-    print("Check Test Environment")
+    #parsing suts
+    suts_raw = json.loads(args.suts)
+    suts = []
+    params = " "
+    #["Server_Lenovo|1.1.1.1|root1|password|sn:11111111", "Server_Huawei|2.2.2.2|root1|password|sn:22222222"]
+    if 'iplist' in args.scriptparams:
+        for sut in suts_raw:
+            with open('iplist','w') as ipf:
+                ipf.write(sut.split('|')[1]+"\n")
+        for param in args.scriptparams:
+            params += param['value'] + " "
+            
+    elif 'ippluslist' in args.scriptparams:
+        for sut in suts_raw:
+            with open('ippluslist','w') as ippf:
+                ippf.write(sut.split('|')[1] + "|" + sut.split('|')[2] + "|" + sut.split('|')[3] + "\n")
+        for param in args.scriptparams:
+            params += param['value'] + " "
+    
+    elif 'suts' in args.scriptparams:
+        if args.topo == 1 or args.topo == 3:
+            suts.append({"addr":suts_raw[1], "username":suts_raw[2], "password":suts_raw[3]})
+        elif args.topo == 2:
+            for sut in suts_raw:
+                suts.append({"addr":sut[1], "username":sut[2], "password":sut[3]})
+        else:
+            print("#RUNTASK: already hanlded at runjob")
+    else:
+        print("#RUNTASK: NO SUT found to execute")
+        return rtnCode.SCRIPTFAILED
+    
+    print("#RUNTASK: Check Test Environment")
     if not os.path.ismount('/testdata'):
         return rtnCode.ENVFAILED
     
-    print("Create testresult directory")
+    print("#RUNTASK: Create testresult directory")
     t = datetime.now()
     starttime = t
     testinstance_dir = "_".join([os.path.basename(args.script).split('.')[0], str(t.year), str(t.month), str(t.day), str(t.hour), str(t.minute), str(t.second), str(t.microsecond)])
     os.mkdir(testinstance_dir)
     os.chdir(testinstance_dir)
 
-    print("move Template File to testresult directory")
+    print("#RUNTASK: move Template File to testresult directory")
     shutil.copyfile('../htest/templates/testresult_summary.html','testresult_summary.html')
 
-    print("Parsing testing data")
+    print("#RUNTASK: Parsing testing data")
     with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'r') as fh:
         testrunningdata = json.load(fh)
 
     if str(args.interpreter).lower() == 'shell':
-        cmd = 'source ../htest/venv/bin/activate && sh ../%s %s'%(args.script, args.scriptparams)
+        if 'iplist' in args.scriptparams:
+            cmd = 'source ../htest/venv/bin/activate && sh ../%s %s '%(args.script, "iplist", params)
+        elif 'ippluslist' in args.scriptparams:
+            cmd = 'source ../htest/venv/bin/activate && sh ../%s %s '%(args.script, "ippluslist", params)
+        else:
+            cmd = 'source ../htest/venv/bin/activate && sh ../%s %s '%(args.script, params)
     elif str(args.interpreter).lower() == 'python':
-        cmd = 'source ../htest/venv/bin/activate && /opt/python/python36/bin/python36 ../%s %s'%(args.script, args.scriptparams)
+        cmd = 'source ../htest/venv/bin/activate && /opt/python/python36/bin/python36 ../%s %s --suts '%(args.script, args.scriptparams, json.dumps(suts))
+        
+    print("#RUNTASK: Executing script: %s" % cmd)
+
     res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
 
-    print("Executing timeout monitor")
+    print("#RUNTASK: Executing timeout monitor")
     timeouttime = starttime + timedelta(**{'seconds': int(args.timeout)})
     timoutcmd = '/opt/python/python36/bin/python36 ../htest/timeout.py --pid %s --ttime "%s"'%(res.pid, timeouttime)
-    print("timeoutcmd is %s"%(timoutcmd))
+    print("#RUNTASK: timeoutcmd is %s"%(timoutcmd))
     try:
         res_timeout = subprocess.Popen( timoutcmd, shell=True )
     except Exception as e:
-        print('Error Happened When Running timeout monitor with script:%s \nError:%s' % ( cmd, e ))
+        print('#RUNTASK: Error Happened When Running timeout monitor with script:%s \nError:%s' % ( cmd, e ))
     rtncode = res.wait()
     '''
     print("Collecting logs...")
@@ -86,7 +127,7 @@ def main():
         print("Something wrong happened when write log to file: %s"%error)
     '''
     
-    print("return code is %s"%rtncode)
+    print("#RUNTASK: return code is %s"%rtncode)
     print(testrunningdata)
     testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
     testrunningdata['testinstances'][args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
@@ -132,11 +173,11 @@ def main():
     else:
         testrunningdata['testinstances'][args.testinstanceid]['status'] = "NA"
     
-    print("update testrun statistics")
+    print("#RUNTASK: update testrun statistics")
     with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'w') as fh:
         fh.write(json.dumps(testrunningdata))
 
-    print("update testrun summary")
+    print("#RUNTASK: update testrun summary")
     with open('/testdata/' + args.testrundir + "/testrun_summary.html", 'r+') as testrun_handle:
         testrundata = testrun_handle.read()
         '''
@@ -146,7 +187,7 @@ def main():
         testrun_handle.seek(0)
         testrun_handle.write(testrundata)
 
-    print("update testresult summary")
+    print("#RUNTASK: update testresult summary")
     endtime = datetime.now()
     logfiles = os.listdir()
     testlog = ""
