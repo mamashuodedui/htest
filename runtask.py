@@ -24,14 +24,15 @@ def main():
     parser.add_argument('-F','--testruningstatfile', default='',required=True, help='testrunning stat file')
     parser.add_argument('-O','--owner', default='admin',required=True, help='test owner')
     parser.add_argument('-T','--topo', default=1,required=True, help='topology: 1.single, 2.b2b 3.multiple')
-    
 
     args = parser.parse_args()
     
     #parsing suts
     suts_raw = json.loads(args.suts)
+    print(suts_raw)
     suts = []
     params = " "
+    scriptparams = json.loads(args.scriptparams)
     #["Server_Lenovo|1.1.1.1|root1|password|sn:11111111", "Server_Huawei|2.2.2.2|root1|password|sn:22222222"]
     if 'iplist' in args.scriptparams:
         for sut in suts_raw:
@@ -44,17 +45,24 @@ def main():
         for sut in suts_raw:
             with open('ippluslist','w') as ippf:
                 ippf.write(sut.split('|')[1] + "|" + sut.split('|')[2] + "|" + sut.split('|')[3] + "\n")
-        for param in args.scriptparams:
-            params += param['value'] + " "
+        for param_key in scriptparams.keys():
+            params += scriptparams[param_key] + " "
     
     elif 'suts' in args.scriptparams:
-        if args.topo == 1 or args.topo == 3:
-            suts.append({"addr":suts_raw[1], "username":suts_raw[2], "password":suts_raw[3]})
-        elif args.topo == 2:
+        if int(args.topo) == 1 or int(args.topo) == 3:
+            sut = suts_raw[0].split("|")
+            suts.append({"addr":sut[1], "username":sut[2], "password":sut[2]})
+        elif int(args.topo) == 2:
             for sut in suts_raw:
-                suts.append({"addr":sut[1], "username":sut[2], "password":sut[3]})
+                s = sut.split("|")
+                suts.append({"addr":s[1], "username":s[2], "password":s[3]})
         else:
-            print("#RUNTASK: already hanlded at runjob")
+            print("#RUNTASK: already hanlded at runjob")        
+        for param_key in scriptparams.keys():
+            if 'suts' in param_key:
+                continue
+            else:
+                params += scriptparams[param_key] + " "
     else:
         print("#RUNTASK: NO SUT found to execute")
         return rtnCode.SCRIPTFAILED
@@ -85,10 +93,10 @@ def main():
         else:
             cmd = 'source ../htest/venv/bin/activate && sh ../%s %s '%(args.script, params)
     elif str(args.interpreter).lower() == 'python':
-        cmd = 'source ../htest/venv/bin/activate && /opt/python/python36/bin/python36 ../%s %s --suts '%(args.script, args.scriptparams, json.dumps(suts))
+        cmd = 'source ../htest/venv/bin/activate && /opt/python/python36/bin/python36 ../%s %s --suts %s'%(args.script, params, json.dumps(suts))
         
-    print("#RUNTASK: Executing script: %s" % cmd)
-
+    print("#RUNTASK: Executing script: %s" % cmd)                                             
+        
     res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
 
     print("#RUNTASK: Executing timeout monitor")
