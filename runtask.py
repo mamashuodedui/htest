@@ -29,6 +29,7 @@ def main():
     
     #parsing suts
     suts_raw = json.loads(args.suts)
+    print(type(suts_raw))
     print(suts_raw)
     suts = []
     params = " "
@@ -134,8 +135,6 @@ def main():
     except Exception as error:
         print("Something wrong happened when write log to file: %s"%error)
     '''
-    
-    print("#RUNTASK: return code is %s"%rtncode)
     print(testrunningdata)
     testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
     testrunningdata['testinstances'][args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
@@ -143,23 +142,24 @@ def main():
     
     #update the testrun data
     testresult = ""
-    if rtncode == rtnCode.SUCCEED:
+    print("#RUNTASK: rtncode type is %s, value is %s"%(type(rtncode), rtncode))
+    if int(rtncode) == rtnCode.SUCCEED:
         testresult = "SUCCEED"
         testrunningdata['SUCCEED'] += 1
         testrunningdata['NOTRUN'] -= 1
-    elif rtncode == rtnCode.TESTFAILED:
+    elif int(rtncode) == rtnCode.TESTFAILED:
         testresult = "TESTFAILED"
         testrunningdata['TESTFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
-    elif rtncode == rtnCode.SCRIPTFAILED:
+    elif int(rtncode) == rtnCode.SCRIPTFAILED:
         testresult = "SCRIPTFAILED"
         testrunningdata['SCRIPTFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
-    elif rtncode == rtnCode.ENVFAILED:
+    elif int(rtncode) == rtnCode.ENVFAILED:
         testresult = "ENVFAILED"
         testrunningdata['ENVFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
-    elif rtncode == rtnCode.TIMEOUT:
+    elif int(rtncode) == rtnCode.TIMEOUT:
         testresult = "TIMEOUT"
         testrunningdata['TIMEOUT'] += 1
         testrunningdata['NOTRUN'] -= 1
