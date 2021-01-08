@@ -10,7 +10,7 @@ from time import sleep
 def main():
 
     log = Log()
-    log.infoPrint("cpu_ht testing starting...")
+    log.infoPrint("cpu_vtd testing starting...")
 
     log.stepPrint("boot to bios")
 
