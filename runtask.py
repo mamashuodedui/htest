@@ -144,7 +144,8 @@ def main():
     except Exception as error:
         print("Something wrong happened when write log to file: %s"%error)
     '''
-    print("#RUNTASK: " + testrunningdata)    
+    print("#RUNTASK: testrunning data as below:")
+    print(testrunningdata)    
     #update the testrun data
     testresult = ""
     print("#RUNTASK: rtncode type is %s, value is %s"%(type(rtncode), rtncode))
