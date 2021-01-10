@@ -192,7 +192,7 @@ def main():
         "-2":"SCRIPTFAILED",
         "-3":"ENVFAILED",
         "-9":"TIMEOUT",
-        "4":"RUNNING"
+        "4":"RUNNING",
         "5":"N/A"
     }
     if str(rtncode) in results.keys():
