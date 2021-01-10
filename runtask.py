@@ -99,6 +99,15 @@ def main():
     print("#RUNTASK: Executing script: %s" % cmd)                                             
         
     res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
+    
+    #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+    testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 4
+    testrunningdata['testinstances'][args.testinstanceid]['testrun_id'] = args.testrunid
+    testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
+    testrunningdata['testinstances'][args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
+    testrunningdata['testinstances'][args.testinstanceid]['pid'] = res.pid
+    with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'w') as fh:
+        fh.write(json.dumps(testrunningdata))
 
     print("#RUNTASK: Executing timeout monitor")
     timeouttime = starttime + timedelta(**{'seconds': int(args.timeout)})
@@ -135,11 +144,7 @@ def main():
     except Exception as error:
         print("Something wrong happened when write log to file: %s"%error)
     '''
-    print(testrunningdata)
-    testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
-    testrunningdata['testinstances'][args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
-    testrunningdata['testinstances'][args.testinstanceid]['pid'] = res.pid
-    
+    print("#RUNTASK: " + testrunningdata)    
     #update the testrun data
     testresult = ""
     print("#RUNTASK: rtncode type is %s, value is %s"%(type(rtncode), rtncode))
@@ -147,39 +152,53 @@ def main():
         testresult = "SUCCEED"
         testrunningdata['SUCCEED'] += 1
         testrunningdata['NOTRUN'] -= 1
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 0
     elif int(rtncode) == rtnCode.TESTFAILED:
         testresult = "TESTFAILED"
         testrunningdata['TESTFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -1
     elif int(rtncode) == rtnCode.SCRIPTFAILED:
         testresult = "SCRIPTFAILED"
         testrunningdata['SCRIPTFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -2
     elif int(rtncode) == rtnCode.ENVFAILED:
         testresult = "ENVFAILED"
         testrunningdata['ENVFAILED'] += 1
         testrunningdata['NOTRUN'] -= 1
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -3
     elif int(rtncode) == rtnCode.TIMEOUT:
         testresult = "TIMEOUT"
         testrunningdata['TIMEOUT'] += 1
         testrunningdata['NOTRUN'] -= 1
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -9
     #if not return by script, timeout happen at hight possiblity
     else:
         testresult = 'NA'
         testrunningdata['NA'] += 1
         testrunningdata['NOTRUN'] -= 1
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 5
 
     results = {
         "0":"SUCCEED",
         "-1":"TESTFAILED",
         "-2":"SCRIPTFAILED",
         "-3":"ENVFAILED",
-        "-9":"TIMEOUT"
+        "-9":"TIMEOUT",
+        "4":"RUNNING"
+        "5":"N/A"
     }
     if str(rtncode) in results.keys():
         testrunningdata['testinstances'][args.testinstanceid]['status'] = results[str(rtncode)]
     else:
-        testrunningdata['testinstances'][args.testinstanceid]['status'] = "NA"
+        testrunningdata['testinstances'][args.testinstanceid]['status'] = "N/A"
     
     print("#RUNTASK: update testrun statistics")
     with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'w') as fh:
