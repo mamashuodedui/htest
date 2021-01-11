@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import argparse
 import subprocess
 import shutil
-#import psutil
 
 import sys
 sys.path.append(".")
@@ -152,38 +151,44 @@ def main():
     if int(rtncode) == rtnCode.SUCCEED:
         testresult = "SUCCEED"
         testrunningdata['SUCCEED'] += 1
-        testrunningdata['NOTRUN'] -= 1
+        if testrunningdata['NOTRUN'] != 0:
+            testrunningdata['NOTRUN'] -= 1
         #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 0
     elif int(rtncode) == rtnCode.TESTFAILED:
         testresult = "TESTFAILED"
         testrunningdata['TESTFAILED'] += 1
-        testrunningdata['NOTRUN'] -= 1
+        if testrunningdata['NOTRUN'] != 0:
+            testrunningdata['NOTRUN'] -= 1
         #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -1
     elif int(rtncode) == rtnCode.SCRIPTFAILED:
         testresult = "SCRIPTFAILED"
         testrunningdata['SCRIPTFAILED'] += 1
-        testrunningdata['NOTRUN'] -= 1
+        if testrunningdata['NOTRUN'] != 0:
+            testrunningdata['NOTRUN'] -= 1
         #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -2
     elif int(rtncode) == rtnCode.ENVFAILED:
         testresult = "ENVFAILED"
         testrunningdata['ENVFAILED'] += 1
-        testrunningdata['NOTRUN'] -= 1
+        if testrunningdata['NOTRUN'] != 0:
+            testrunningdata['NOTRUN'] -= 1
         #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -3
     elif int(rtncode) == rtnCode.TIMEOUT:
         testresult = "TIMEOUT"
         testrunningdata['TIMEOUT'] += 1
-        testrunningdata['NOTRUN'] -= 1
+        if testrunningdata['NOTRUN'] != 0:
+            testrunningdata['NOTRUN'] -= 1
         #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -9
     #if not return by script, timeout happen at hight possiblity
     else:
         testresult = 'NA'
         testrunningdata['NA'] += 1
-        testrunningdata['NOTRUN'] -= 1
+        if testrunningdata['NOTRUN'] != 0:
+            testrunningdata['NOTRUN'] -= 1
         #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 5
 
