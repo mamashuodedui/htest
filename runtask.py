@@ -187,8 +187,8 @@ def main():
     else:
         testresult = 'NA'
         testrunningdata['NA'] += 1
-        if testrunningdata['NOTRUN'] != 0:
-            testrunningdata['NOTRUN'] -= 1
+        #if testrunningdata['NOTRUN'] != 0:
+        #    testrunningdata['NOTRUN'] -= 1
         #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 5
 
