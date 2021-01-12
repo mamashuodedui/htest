@@ -99,7 +99,7 @@ def main():
         
     res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
     
-    #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+    #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
     testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 4
     testrunningdata['testinstances'][args.testinstanceid]['testrun_id'] = args.testrunid
     testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
@@ -154,35 +154,35 @@ def main():
         testrunningdata['SUCCEED'] += 1
         if testrunningdata['NOTRUN'] != 0:
             testrunningdata['NOTRUN'] -= 1
-        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 0
     elif int(rtncode) == rtnCode.TESTFAILED:
         testresult = "TESTFAILED"
         testrunningdata['TESTFAILED'] += 1
         if testrunningdata['NOTRUN'] != 0:
             testrunningdata['NOTRUN'] -= 1
-        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -1
     elif int(rtncode) == rtnCode.SCRIPTFAILED:
         testresult = "SCRIPTFAILED"
         testrunningdata['SCRIPTFAILED'] += 1
         if testrunningdata['NOTRUN'] != 0:
             testrunningdata['NOTRUN'] -= 1
-        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -2
     elif int(rtncode) == rtnCode.ENVFAILED:
         testresult = "ENVFAILED"
         testrunningdata['ENVFAILED'] += 1
         if testrunningdata['NOTRUN'] != 0:
             testrunningdata['NOTRUN'] -= 1
-        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -3
     elif int(rtncode) == rtnCode.TIMEOUT:
         testresult = "TIMEOUT"
         testrunningdata['TIMEOUT'] += 1
         if testrunningdata['NOTRUN'] != 0:
             testrunningdata['NOTRUN'] -= 1
-        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
         testrunningdata['testinstances'][args.testinstanceid]['status_id'] = -9
     #if not return by script, timeout happen at hight possiblity
     else:
@@ -190,8 +190,8 @@ def main():
         testrunningdata['NA'] += 1
         if testrunningdata['NOTRUN'] != 0:
             testrunningdata['NOTRUN'] -= 1
-        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.RUNNING 5.N/A
-        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 5
+        #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
+        testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 4
 
     results = {
         "0":"SUCCEED",
@@ -199,13 +199,13 @@ def main():
         "-2":"SCRIPTFAILED",
         "-3":"ENVFAILED",
         "-9":"TIMEOUT",
-        "4":"RUNNING",
-        "5":"N/A"
+        "4":"NA",
+        "5":"NOTRUN"
     }
     if str(rtncode) in results.keys():
         testrunningdata['testinstances'][args.testinstanceid]['status'] = results[str(rtncode)]
     else:
-        testrunningdata['testinstances'][args.testinstanceid]['status'] = "N/A"
+        testrunningdata['testinstances'][args.testinstanceid]['status'] = "NA"
     
     print("#RUNTASK: update testrun statistics")
     with open('/testdata/TEST_RUNNING_STAT/' + args.testrunningstatfile, 'w') as fh:
