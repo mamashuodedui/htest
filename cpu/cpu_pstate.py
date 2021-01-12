@@ -22,7 +22,7 @@ def main():
     log.stepPrint("boot to OS")
 
     log.stepPrint("check ht")
-    sleep(120)
+    sleep(30)
 
     log.summaryPrint()
     
