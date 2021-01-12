@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import argparse
 import subprocess
 import shutil
-
 import sys
 sys.path.append(".")
 
@@ -20,7 +19,7 @@ def main():
     parser.add_argument('-s','--interpreter', default='python36', required=True, help='Script interpreter, default is python')
     parser.add_argument('-t','--script', default='', required=True, help='Whole Script path')
     parser.add_argument('-p','--scriptparams', default='{}',required=False, help='Script Parameters to be tested')
-    parser.add_argument('-F','--testruningstatfile', default='',required=True, help='testrunning stat file')
+    parser.add_argument('-F','--testrunningstatfile', default='',required=True, help='testrunning stat file')
     parser.add_argument('-O','--owner', default='admin',required=True, help='test owner')
     parser.add_argument('-T','--topo', default=1,required=True, help='topology: 1.single, 2.b2b 3.multiple')
 
@@ -82,8 +81,9 @@ def main():
     shutil.copyfile('../htest/templates/testresult_summary.html','testresult_summary.html')
 
     print("#RUNTASK: Parsing testing data")
-    with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'r') as fh:
-        testrunningdata = json.load(fh)
+    with open('/testdata/TEST_RUNNING_STAT/' + args.testrunningstatfile, 'r') as testrunning_handle:
+        temp_data = testrunning_handle.read()
+        testrunningdata = json.loads(temp_data)
 
     if str(args.interpreter).lower() == 'shell':
         if 'iplist' in args.scriptparams:
@@ -105,7 +105,7 @@ def main():
     testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
     testrunningdata['testinstances'][args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
     testrunningdata['testinstances'][args.testinstanceid]['pid'] = res.pid
-    with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'w') as fh:
+    with open('/testdata/TEST_RUNNING_STAT/' + args.testrunningstatfile, 'w') as fh:
         fh.write(json.dumps(testrunningdata))
 
     print("#RUNTASK: Executing timeout monitor")
@@ -143,6 +143,7 @@ def main():
     except Exception as error:
         print("Something wrong happened when write log to file: %s"%error)
     '''
+    
     print("#RUNTASK: testrunning data as below:")
     print(testrunningdata)    
     #update the testrun data
@@ -207,7 +208,7 @@ def main():
         testrunningdata['testinstances'][args.testinstanceid]['status'] = "N/A"
     
     print("#RUNTASK: update testrun statistics")
-    with open('/testdata/TEST_RUNNING_STAT/' + args.testruningstatfile, 'w') as fh:
+    with open('/testdata/TEST_RUNNING_STAT/' + args.testrunningstatfile, 'w') as fh:
         fh.write(json.dumps(testrunningdata))
 
     print("#RUNTASK: update testrun summary")
