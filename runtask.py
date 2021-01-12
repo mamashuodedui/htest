@@ -99,8 +99,8 @@ def main():
         
     res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
     
-    #0.SUCCEED -1.TESTFAILED -2.SCRIPTFAILED -3.ENVFAILED -9.TIMEOUT 4.NA 5.NOTRUN
-    testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 4
+    #1.SUCCESS 2.FAIL 3.RUNNING 4.NA 5.NOTRUN
+    testrunningdata['testinstances'][args.testinstanceid]['status_id'] = 3
     testrunningdata['testinstances'][args.testinstanceid]['testrun_id'] = args.testrunid
     testrunningdata['testinstances'][args.testinstanceid]['log_path'] = args.testrundir + "/" + testinstance_dir
     testrunningdata['testinstances'][args.testinstanceid]['summary_html'] = args.testrundir + "/" + testinstance_dir + '/testresult_summary.html'
